@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+	{% for term, artists in top_artists.items() %}
+	<p>Top 10 {{ term }} artists for {{ username }}</p>
+		<ol start=1>
+		{% for artist in artists %}
+			<li>{{ artist }}</li>
+		{% endfor %}
+		</ol>
+	{% endfor %}
+	
+{% endblock %}
