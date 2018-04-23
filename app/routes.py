@@ -5,6 +5,11 @@ import os
 @app.route('/')
 @app.route('/index')
 def index():
+
+	#print all session variables:
+	for key in session.keys():
+		print(key, session[key])
+
 	from datetime import datetime
 	the_time = datetime.now().strftime("%A, %d %b %Y %l:%M %p")
 
@@ -22,7 +27,9 @@ def analyze():
 
 	scope = 'user-top-read'
 
-	sp = spotipy.Spotify(auth=session['token'])
+	print("Analyzing spotify data for " + session['current_user']['username'])
+
+	sp = spotipy.Spotify(auth=session['current_user']['token'])
 
 	#get top 10 artists short, medium, and long term
 	top_artists = {" ".join(term.split("_")): [item['name'] for item in sp.current_user_top_artists(limit=10, offset=0, time_range=term)['items']] for term in ["short_term", "medium_term", "long_term"]}
@@ -30,35 +37,61 @@ def analyze():
 	return render_template(
 		"analyze.html",
 		title="analyze",
-		username=session['username'],
+		username=session['current_user']['username'],
 		top_artists=top_artists
 	)
 
 @app.route('/login')
 def login():
+
 	return render_template(
 		"login.html",
 		title="login"
 	)
+	
+
 
 @app.route('/login', methods=['POST']) 
 def login_post():
 
 	import spotipy
 	import spotipy.util as util
+
+	#clear session
+	session.clear() 
+
 	scope = 'user-top-read'
 
 	username = request.form['text']
 
 	token = util.prompt_for_user_token(username,scope)
 	print("logged in!")
-	sp = spotipy.Spotify(auth=token)
+	#sp = spotipy.Spotify(auth=token)
+
+	#create a user:
+	user = {
+		"username": username,
+		"token": token
+	}
 
 	#store token as session variable:
-	session['token'] = token
-	session['username'] = username
+	print("users:", session.get('users'))
+
+	#check if there are not any users:
+	if session.get('users') is not None:
+		session['users'][username] = token
+		print("There are users")
+	else:
+		session['users'] = {}
+		session['users'][username] = token
+
+	#set current user:
+	session['current_user'] = user
+
+	print("users:", session.get('users'))
 
 	return redirect(url_for('index'))
+
 
 #Need the following two functions to properly update CSS
 @app.context_processor

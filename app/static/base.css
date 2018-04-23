@@ -29,10 +29,6 @@ ul.a li a:hover {
     background-color: #111;
 }
 
-ul.a li:last-child {
-    border-right: none;
-}
-
 body {
 
     padding-top: 50;
